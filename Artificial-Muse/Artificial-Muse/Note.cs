@@ -13,7 +13,7 @@ namespace Artificial_Muse
         /// </summary>
         /// <param name="length">Length of the note</param>
         /// <param name="pitch">The pitch of the note</param>
-        Note(double length, string pitch)
+        public Note(double length, string pitch)
         {
             this.length = length;
             this.pitch = pitch;

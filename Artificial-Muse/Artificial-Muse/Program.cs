@@ -18,10 +18,7 @@ namespace Artificial_Muse
             Application.SetCompatibleTextRenderingDefault(false);
             Application.Run(new Form1());
 
-            Note myNote = new Note();
-            myNote.length = 2.5;
-            myNote.pitch = "High";
-
+            Note myNote = new Note(2.5, "High");
         }
     }
 }
