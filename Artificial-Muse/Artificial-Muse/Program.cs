@@ -6,7 +6,7 @@ using System.Windows.Forms;
 
 namespace Artificial_Muse
 {
-    static class Program
+   static class Program
     {
         /// <summary>
         /// The main entry point for the application.
@@ -19,6 +19,13 @@ namespace Artificial_Muse
             Application.Run(new Form1());
 
             Note myNote = new Note(2.5, "High");
+            readFile();
+        }
+
+        static void readFile()
+        {
+            
+            return;
         }
     }
 }
