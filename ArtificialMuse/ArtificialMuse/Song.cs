@@ -9,6 +9,7 @@ namespace Artificial_Muse
     class Song
     {
         public List<Staff> staffs = new List<Staff>();
+        public string fileName = "";
 
         public string asString()
         {
@@ -17,7 +18,7 @@ namespace Artificial_Muse
             line += getLowNote().ToString() + ",";
             line += getTempoAverage().ToString() + ",";
             line += getPercentTriplets().ToString() + ",";
-            line += getPercentStacato().ToString() + ",";
+            line += getPercentStaccato().ToString() + ",";
             line += getPercentSlur().ToString() + ",";
             line += getPercentChord().ToString() + ",";
             line += getAvgNoteLength().ToString() + ",";
@@ -55,7 +56,7 @@ namespace Artificial_Muse
             {
                 avg += staff.getTempoAverage();
             }
-            return avg / staffs.Count;
+            return avg / (double) staffs.Count;
         }
 
         public double getPercentChord()
@@ -88,12 +89,12 @@ namespace Artificial_Muse
             return avg / staffs.Count;
         }
 
-        public double getPercentStacato()
+        public double getPercentStaccato()
         {
             double avg = 0;
             foreach (Staff staff in staffs)
             {
-                avg += staff.getPercentStacato();
+                avg += staff.getPercentStaccato();
             }
             return avg / staffs.Count;
         }

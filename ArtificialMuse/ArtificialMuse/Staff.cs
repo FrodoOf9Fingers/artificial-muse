@@ -45,7 +45,7 @@ namespace Artificial_Muse
             {
                 avg += measure.getTempo();
             }
-            return avg / measures.Count;
+            return avg / (double) measures.Count;
         }
 
         public double getPercentChord()
@@ -78,12 +78,12 @@ namespace Artificial_Muse
             return avg / measures.Count;
         }
 
-        public double getPercentStacato()
+        public double getPercentStaccato()
         {
             double avg = 0;
             foreach (Measure measure in measures)
             {
-                avg += measure.getPercentStacato();
+                avg += measure.getPercentStaccato();
             }
             return avg / measures.Count;
         }

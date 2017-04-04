@@ -41,6 +41,8 @@ namespace Artificial_Muse
 
         public bool isCorrect()
         {
+            if (chords.Count < 1)
+                return false;
             //Check validity of the measure
             Fraction length = new Fraction(0, 1);
             foreach (Chord chord in chords)
@@ -103,18 +105,18 @@ namespace Artificial_Muse
 
         public double getAvgNoteLength()
         {
-            return timeSignature.Numerator / (timeSignature.Denominator * chords.Count);
+            return (double)timeSignature.Numerator / ((double)timeSignature.Denominator * chords.Count);
         }
 
-        public double getPercentStacato()
+        public double getPercentStaccato()
         {
-            Fraction lengthStacato = new Fraction(0, 1);
+            Fraction lengthStaccato = new Fraction(0, 1);
             foreach (Chord chord in chords)
             {
-                if (chord.isStacato)
-                    lengthStacato += chord.length;
+                if (chord.isStaccato())
+                    lengthStaccato += chord.length;
             }
-            return (lengthStacato / timeSignature).ToDouble();
+            return (lengthStaccato / timeSignature).ToDouble();
         }
 
         public double getPercentSlur()
@@ -122,7 +124,7 @@ namespace Artificial_Muse
             Fraction lengthSlurred = new Fraction(0, 1);
             foreach (Chord chord in chords)
             {
-                if (chord.isSlurred)
+                if (chord.isSlurred())
                     lengthSlurred += chord.length;
             }
             return (lengthSlurred / timeSignature).ToDouble();

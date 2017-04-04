@@ -16,13 +16,18 @@ namespace Artificial_Muse
         public List<Song> parseSongs(string dirPath)
         {
             List<Song> songs = new List<Song>();
-            foreach(String filePath in Directory.GetFiles(dirPath))
+            foreach (String filePath in Directory.GetFiles(dirPath))
             {
-                songs.Add(parseSong(filePath));
+                try
+                {
+                    songs.Add(parseSong(filePath));
+                }
+                catch (Exception)
+                { }
             }
             return songs;
         }
-        
+
         public Song parseSong(string filePath)
         {
             String line;
@@ -30,6 +35,7 @@ namespace Artificial_Muse
             bool done = false;
 
             Song song = new Song();
+            song.fileName = filePath;
             while (!done)
             {
                 if (file.EndOfStream)
@@ -66,16 +72,17 @@ namespace Artificial_Muse
             String keySig = "";
             String timeSig = "";
             bool inBar = false;
+            int tempo = 0;
 
             int i = 0;
             Measure measure = new Measure();
-            while(!done)
+            while (!done)
             {
                 i++;
                 line = reader.ReadLine();
                 if (reader.EndOfStream)
                     break;
-                
+
                 //Clef
                 if (Regex.IsMatch(line, "Clef"))
                 {
@@ -87,12 +94,12 @@ namespace Artificial_Muse
                     {
                         cleftOffset = -6;
                     }
-                } 
+                }
                 //Time signature
                 else if (Regex.IsMatch(line, "\\|TimeSig\\|"))
                 {
                     Regex rx = new Regex(":");
-                    foreach(Match m in rx.Matches(line))
+                    foreach (Match m in rx.Matches(line))
                     {
                         timeSig = line.Substring(m.Index);
                     }
@@ -112,7 +119,9 @@ namespace Artificial_Muse
                     measure.timeSignature = parseTimeSig(timeSig);
                     measure.cleftOffset = cleftOffset;
                     measure.keyOffsets = parseKey(keySig);
-                    staff.addMeasure(measure);
+                    measure.tempo = tempo;
+                    if (measure.isCorrect())
+                        staff.addMeasure(measure);
                     measure = new Measure();
                 }
                 //Parse Rests
@@ -129,7 +138,7 @@ namespace Artificial_Muse
                 }
                 //Parse Notes
                 else if (Regex.IsMatch(line, "\\|Note\\|"))
-                {                    
+                {
                     Note note = parseNotes(line)[0];
                     Chord chord = new Chord();
                     chord.length = parseLength(line);
@@ -155,6 +164,11 @@ namespace Artificial_Muse
                     chord.addNote(note);
                     measure.addChord(chord);
                 }
+                // Tempo
+                else if (Regex.IsMatch(line, "\\|Tempo\\|"))
+                {
+                    tempo = parseTempo(line);
+                }
                 // Found the end!
                 else if (Regex.IsMatch(line, "\\|AddStaff"))
                 {
@@ -171,6 +185,26 @@ namespace Artificial_Muse
             return staff;
         }
 
+        private int parseTempo(string line)
+        {
+            Regex rx = new Regex("\\|Tempo:");
+            int start = rx.Matches(line)[0].Index;
+            rx = new Regex("\\|");
+            int end = 0;
+            int retval = 0;
+            if (rx.IsMatch(line.Substring(start + 1)))
+            {
+                end = rx.Matches(line.Substring(start + 1))[0].Index;
+                retval = Convert.ToInt32(line.Substring(start + 7, end - 6));
+            }
+            else
+            {
+                retval = Convert.ToInt32(line.Substring(start + 7));
+            }
+
+            return retval;
+        }
+
         private Note parseNotePitch(String pitch)
         {
             Note note = new Note();
@@ -178,6 +212,7 @@ namespace Artificial_Muse
             double doublePitch = 0;
             double offset = 0;
             bool done = false;
+
             for (int i = 0; i < pitch.Length && !done; i++)
             {
                 switch (pitch[i])
@@ -200,6 +235,7 @@ namespace Artificial_Muse
                         break;
                 }
             }
+
             return note;
         }
 
@@ -278,14 +314,17 @@ namespace Artificial_Muse
                     break;
             }
             return length;
-           
+
         }
 
         private Dictionary<int, double> parseKey(String keySig)
         {
+            if (String.IsNullOrEmpty(keySig))
+                return new Dictionary<int, double>();
+
             Dictionary<int, double> keyOffsets = new Dictionary<int, double>();
             Regex rx = new Regex(",");
-            foreach(String pitch in rx.Split(keySig))
+            foreach (String pitch in rx.Split(keySig))
             {
                 double offset = 0;
                 if (Regex.IsMatch(pitch, "b"))
@@ -297,7 +336,7 @@ namespace Artificial_Muse
             }
             return keyOffsets;
         }
-        
+
         private Fraction parseTimeSig(String timeSig)
         {
             int num = 0;
@@ -310,13 +349,30 @@ namespace Artificial_Muse
             {
                 numPos = m.Index;
             }
-             rx = new Regex("\\/");
+            rx = new Regex("\\/");
             foreach (Match m in rx.Matches(timeSig))
             {
                 slashPos = m.Index;
             }
-            num = Convert.ToInt32(timeSig.Substring(numPos, slashPos - numPos));
-            dem = Convert.ToInt32(timeSig.Substring(slashPos + 1));
+            if (timeSig == ":Common")
+            {
+                num = 4;
+                dem = 4;
+            }
+            else if (timeSig == ":AllaBreve")
+            {
+                num = 2;
+                dem = 2;
+            }
+            else if (timeSig == "")
+            {
+                throw new Exception();
+            }
+            else
+            {
+                num = Convert.ToInt32(timeSig.Substring(numPos, slashPos - numPos));
+                dem = Convert.ToInt32(timeSig.Substring(slashPos + 1));
+            }
 
             return new Fraction(num, dem);
         }

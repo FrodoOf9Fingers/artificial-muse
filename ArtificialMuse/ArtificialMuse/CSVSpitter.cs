@@ -13,8 +13,8 @@ namespace Artificial_Muse
             //System.IO.StreamWriter outStream = new System.IO.StreamWriter(fileName);
             List<String> lines = new List<String>();
 
-            //Output header
-            lines.Add("Awesome Header");
+            //Output header            
+            lines.Add("#, hn, ln, tempo, pt, ps, psl, pc, nl, range");
             //Output Fields
             for (int i = 0; i < songs.Count; i++)
             {
