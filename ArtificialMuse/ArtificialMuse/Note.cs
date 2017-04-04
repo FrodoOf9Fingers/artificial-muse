@@ -24,5 +24,6 @@ namespace Artificial_Muse
         public bool isSlurred = false;
         public bool isRest = false;
         public bool isStaccato = false;
+        public bool isAccident = false;
     }
 }

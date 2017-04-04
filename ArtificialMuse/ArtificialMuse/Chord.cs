@@ -19,6 +19,24 @@ namespace Artificial_Muse
                 notes.Add(new Note(note));
             }
         }
+        public double avgPitch()
+        {
+            double sumPitch = 0;
+            foreach (Note note in notes)
+            {
+                sumPitch += note.pitch;
+            }
+            return sumPitch / (double) notes.Count;
+        }
+        public bool isRest()
+        {
+            foreach (Note note in notes)
+            {
+                if (note.isRest)
+                    return true;
+            }
+            return false;
+        }
 
         public Chord()
         {

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -14,6 +15,9 @@ namespace Artificial_Muse
         public string asString()
         {
             string line = "";
+            FileInfo info = new FileInfo(fileName);
+
+            line += info.Name + ",";
             line += getHighNote().ToString() + ",";
             line += getLowNote().ToString() + ",";
             line += getTempoAverage().ToString() + ",";
@@ -22,10 +26,57 @@ namespace Artificial_Muse
             line += getPercentSlur().ToString() + ",";
             line += getPercentChord().ToString() + ",";
             line += getAvgNoteLength().ToString() + ",";
-            line += (getHighNote() - getLowNote()).ToString();
+            line += (getHighNote() - getLowNote()).ToString() + ",";
+            line += getPercentAccidentals().ToString() + ",";
+            line += staffs.Count.ToString() + ",";
+            line += getFluidityAverage();
 
             return line;
         }
+        public double getFluidityAverage()
+        {
+            Chord prevChord;
+            double numChords = 0;
+            double amountMovement = 0;
+            foreach (Staff staff in staffs)
+            {
+                prevChord = null;
+                foreach (Measure measure in staff.measures)
+                    foreach (Chord chord in measure.chords)
+                    {
+                        if (!chord.isRest() && prevChord != null)
+                        {
+                            amountMovement += Math.Abs(chord.avgPitch() - prevChord.avgPitch());
+                            prevChord = chord;
+                            numChords++;
+                        }
+                        else if (prevChord == null && !chord.isRest())
+                        {
+                            numChords++;
+                            prevChord = chord;
+                        }
+                    }
+            }
+            return amountMovement / numChords;
+        }
+
+        public double getPercentAccidentals()
+        {
+            double numNotes = 0;
+            double numAccidentals = 0;
+            foreach (Staff staff in staffs)
+                foreach (Measure measure in staff.measures)
+                    foreach (Chord chord in measure.chords)
+                        foreach (Note note in chord.notes)
+                        {
+                            if (note.isAccident)
+                                numAccidentals++;
+                            numNotes++;
+                        }
+            return numAccidentals / numNotes;
+        }
+
+
 
         public double getHighNote()
         {
@@ -56,7 +107,7 @@ namespace Artificial_Muse
             {
                 avg += staff.getTempoAverage();
             }
-            return avg / (double) staffs.Count;
+            return avg / (double)staffs.Count;
         }
 
         public double getPercentChord()
@@ -69,15 +120,23 @@ namespace Artificial_Muse
             return avg / staffs.Count;
         }
 
+
         public double getPercentTriplets()
         {
-            double avg = 0;
+            double numNotes = 0;
+            double numTriplets = 0;
             foreach (Staff staff in staffs)
-            {
-                avg += staff.getPercentTriplets();
-            }
-            return avg / staffs.Count;
+                foreach (Measure measure in staff.measures)
+                    foreach (Chord chord in measure.chords)
+                    {
+                        if (chord.length.Denominator % 3 == 0)
+                            numTriplets++;
+                        numNotes++;
+                    }
+            return numTriplets / numNotes;
         }
+
+
 
         public double getAvgNoteLength()
         {

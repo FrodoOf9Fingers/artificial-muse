@@ -12,6 +12,7 @@ namespace Artificial_Muse
     {
         Song song = new Song();
         String prevLine = "";
+        int numFailures = 0;
 
         public List<Song> parseSongs(string dirPath)
         {
@@ -23,7 +24,9 @@ namespace Artificial_Muse
                     songs.Add(parseSong(filePath));
                 }
                 catch (Exception)
-                { }
+                {
+                    numFailures++;
+                }
             }
             return songs;
         }
@@ -128,11 +131,11 @@ namespace Artificial_Muse
                 else if (Regex.IsMatch(line, "\\|Rest\\|"))
                 {
                     Note note = new Note();
-                    note.length = parseLength(line);
+                    note = parseLength(line, note);
                     note.pitch = 0;
                     note.isRest = true;
                     Chord chord = new Chord();
-                    chord.length = parseLength(line);
+                    chord.length = note.length;
                     chord.addNote(note);
                     measure.addChord(chord);
                 }
@@ -141,7 +144,8 @@ namespace Artificial_Muse
                 {
                     Note note = parseNotes(line)[0];
                     Chord chord = new Chord();
-                    chord.length = parseLength(line);
+                    note = parseLength(line, note);
+                    chord.length = note.length;
                     chord.addNote(note);
                     measure.addChord(chord);
                 }
@@ -149,18 +153,18 @@ namespace Artificial_Muse
                 else if (Regex.IsMatch(line, "\\|Chord\\|"))
                 {
                     Chord chord = new Chord();
-                    chord.length = parseLength(line);
                     chord.notes = parseNotes(line);
+                    chord.length = chord.notes[0].length;
                     measure.addChord(chord);
                 }
                 //Parse Rest-Chords TODO: Improve this, it currently ignores the chord!
                 else if (Regex.IsMatch(line, "\\|RestChord\\|"))
                 {
                     Note note = new Note();
-                    note.length = parseLength(line);
+                    note = parseLength(line, note);
                     note.pitch = -1;
                     Chord chord = new Chord();
-                    chord.length = parseLength(line);
+                    chord.length = note.length;
                     chord.addNote(note);
                     measure.addChord(chord);
                 }
@@ -219,9 +223,11 @@ namespace Artificial_Muse
                 {
                     case 'b':
                         offset = .5;
+                        note.isAccident = true;
                         break;
                     case '#':
                         offset = -.5;
+                        note.isAccident = true;
                         break;
                     default:
                         if (pitch[pitch.Length - 1] == '^')
@@ -242,7 +248,6 @@ namespace Artificial_Muse
         private List<Note> parseNotes(String line)
         {
             List<Note> notes = new List<Note>();
-            Fraction length = parseLength(line);
             Regex rx = new Regex("\\|Pos:");
             int start = rx.Matches(line)[0].Index;
             rx = new Regex("\\|");
@@ -256,8 +261,7 @@ namespace Artificial_Muse
                 foreach (String pitch in rx.Split(line.Substring(start + 5, end - 4)))
                 {
                     Note note = parseNotePitch(pitch);
-                    note.length = length;
-
+                    note = parseLength(line, note);
                     notes.Add(note);
                 }
             }
@@ -267,8 +271,7 @@ namespace Artificial_Muse
                 foreach (String pitch in rx.Split(line.Substring(start + 5)))
                 {
                     Note note = parseNotePitch(pitch);
-                    note.length = length;
-
+                    note = parseLength(line, note);
                     notes.Add(note);
                 }
             }
@@ -276,7 +279,7 @@ namespace Artificial_Muse
             return notes;
         }
 
-        private Fraction parseLength(String line)
+        private Note parseLength(String line, Note note)
         {
             string lengthStr;
             Fraction length = new Fraction();
@@ -313,7 +316,16 @@ namespace Artificial_Muse
                     length.Denominator = 1;
                     break;
             }
-            return length;
+            rx = new Regex("Staccato");
+            if (rx.IsMatch(line))
+                note.isStaccato = true;
+            rx = new Regex("Triplet");
+            if (rx.IsMatch(line))
+                length *= new Fraction(2, 3);
+
+            note.length = length;
+
+            return note;
 
         }
 

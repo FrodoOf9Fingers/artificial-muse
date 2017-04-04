@@ -10,15 +10,14 @@ namespace Artificial_Muse
     {
         public void genCSV(List<Song> songs, String fileName)
         {
-            //System.IO.StreamWriter outStream = new System.IO.StreamWriter(fileName);
             List<String> lines = new List<String>();
 
             //Output header            
-            lines.Add("#, hn, ln, tempo, pt, ps, psl, pc, nl, range");
+            lines.Add("#, highNote, lowNote, tempo, percentTriplets, percentStaccato, percentSlurs, percentChord, avgNoteLength, range, percentAccidental, numParts, fluidity");
             //Output Fields
-            for (int i = 0; i < songs.Count; i++)
+            foreach (Song song in songs)
             {
-                lines.Add(Convert.ToString(i) + "," + songs[i].asString()); 
+                lines.Add(song.asString()); 
             }
 
             System.IO.File.WriteAllLines(fileName, lines);

@@ -8,7 +8,7 @@ namespace Artificial_Muse
 {
     class Staff
     {
-        List<Measure> measures = new List<Measure>();
+        public List<Measure> measures = new List<Measure>();
 
         public void addMeasure(Measure measure)
         {
@@ -54,16 +54,6 @@ namespace Artificial_Muse
             foreach (Measure measure in measures)
             {
                 avg += measure.getPercentChord();
-            }
-            return avg / measures.Count;
-        }
-
-        public double getPercentTriplets()
-        {
-            double avg = 0;
-            foreach (Measure measure in measures)
-            {
-                avg += measure.getPercentTriplets();
             }
             return avg / measures.Count;
         }

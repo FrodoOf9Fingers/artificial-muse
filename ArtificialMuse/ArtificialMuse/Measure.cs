@@ -14,7 +14,7 @@ namespace Artificial_Muse
         public Fraction timeSignature;
         public int tempo = 0;
         bool timeChange;
-        List<Chord> chords = new List<Chord>();
+        public List<Chord> chords = new List<Chord>();
         
         public Measure(Measure measure)
         {
@@ -88,19 +88,6 @@ namespace Artificial_Muse
                     lengthOfChords += chord.length;
             }
             return (lengthOfChords / timeSignature).ToDouble();
-        }
-
-        public double getPercentTriplets()
-        {
-            Fraction lengthTriplets = new Fraction(0,1);
-            foreach (Chord chord in chords)
-            {
-                if (chord.length.Denominator == 3 ||
-                    chord.length.Denominator == 6 ||
-                    chord.length.Denominator == 9)
-                    lengthTriplets += chord.length;
-            }
-            return (lengthTriplets / timeSignature).ToDouble();
         }
 
         public double getAvgNoteLength()
