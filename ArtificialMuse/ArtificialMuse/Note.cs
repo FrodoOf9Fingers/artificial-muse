@@ -21,5 +21,8 @@ namespace Artificial_Muse
 
         public double pitch { get; set; } // -1 for rests
         public Fraction length { get; set; }
+        public bool isSlurred = false;
+        public bool isRest = false;
+        public bool isStaccato = false;
     }
 }

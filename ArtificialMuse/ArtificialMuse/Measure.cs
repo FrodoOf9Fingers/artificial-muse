@@ -9,7 +9,7 @@ namespace Artificial_Muse
     class Measure
     {
         public int cleftOffset;
-        public Dictionary<int, double> keyOffsets;
+        public Dictionary<int, double> keyOffsets = new Dictionary<int,double>();
         //Time signature parts
         public Fraction timeSignature;
         public int tempo = 0;
@@ -52,11 +52,11 @@ namespace Artificial_Muse
         
         public double getHighNote()
         {
-            double pitch = 0;
+            double pitch = -5000;
             foreach(Chord chord in chords)
             {
                 if (pitch < chord.getHighNote())
-                    pitch = chord.getLowNote();
+                    pitch = chord.getHighNote();
             }
             return pitch;
         }

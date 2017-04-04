@@ -10,13 +10,9 @@ namespace Artificial_Muse
     {
         public List<Note> notes = new List<Note>();
         public Fraction length { get; set; }
-        public bool isStacato = false;
-        public bool isSlurred = false;
 
         public Chord(Chord chord)
         {
-            isStacato = chord.isStacato;
-            isSlurred = chord.isSlurred;
             length = new Fraction(chord.length);
             foreach(Note note in chord.notes)
             {
@@ -39,10 +35,10 @@ namespace Artificial_Muse
         }
         public double getHighNote()
         {
-            double pitch = 0; 
+            double pitch = -5000; 
             foreach (Note note in notes)
             {
-                if (pitch < note.pitch)
+                if (pitch < note.pitch && !note.isRest)
                     pitch = note.pitch;
             }
             return pitch;
@@ -52,10 +48,30 @@ namespace Artificial_Muse
             double pitch = 500;
             foreach (Note note in notes)
             {
-                if (pitch > note.pitch && note.pitch != -1)
+                if (pitch > note.pitch && !note.isRest)
                     pitch = note.pitch;
             }
             return pitch;
+        }
+
+        public bool isSlurred()
+        {
+            foreach (Note note in notes)
+            {
+                if (note.isSlurred)
+                    return true;
+            }
+            return false;
+        }
+
+        public bool isStaccato()
+        {
+            foreach (Note note in notes)
+            {
+                if (note.isStaccato)
+                    return true;
+            }
+            return false;
         }
     }
 }

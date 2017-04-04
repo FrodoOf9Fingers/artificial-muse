@@ -28,11 +28,11 @@ namespace Artificial_Muse
 
         public double getHighNote()
         {
-            double pitch = 0;
+            double pitch = -5000;
             foreach (Staff staff in staffs)
             {
                 if (pitch < staff.getHighNote())
-                    pitch = staff.getLowNote();
+                    pitch = staff.getHighNote();
             }
             return pitch;
         }

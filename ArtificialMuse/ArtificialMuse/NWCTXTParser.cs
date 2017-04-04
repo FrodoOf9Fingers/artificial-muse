@@ -44,8 +44,8 @@ namespace Artificial_Muse
                     prevLine = "";
                 }
 
-                if (Regex.IsMatch(line, "|AddStaff|") &&
-                    Regex.IsMatch(line, "|Group:\"Standard\""))
+                if (Regex.IsMatch(line, "\\|AddStaff\\|") &&
+                    Regex.IsMatch(line, "\\|Group:\"Standard\""))
                 {
                     song.staffs.Add(parseMeasures(file));
                 }
@@ -89,7 +89,7 @@ namespace Artificial_Muse
                     }
                 } 
                 //Time signature
-                else if (Regex.IsMatch(line, "|TimeSig|"))
+                else if (Regex.IsMatch(line, "\\|TimeSig\\|"))
                 {
                     Regex rx = new Regex(":");
                     foreach(Match m in rx.Matches(line))
@@ -98,7 +98,7 @@ namespace Artificial_Muse
                     }
                 }
                 //Key
-                else if (Regex.IsMatch(line, "|Key|"))
+                else if (Regex.IsMatch(line, "\\|Key\\|"))
                 {
                     Regex rx = new Regex(":");
                     foreach (Match m in rx.Matches(line))
@@ -107,45 +107,45 @@ namespace Artificial_Muse
                     }
                 }
                 // New Measure
-                else if (Regex.IsMatch(line, "|Bar"))
+                else if (Regex.IsMatch(line, "\\|Bar"))
                 {
-                    staff.addMeasure(measure);
-                    measure = new Measure();
                     measure.timeSignature = parseTimeSig(timeSig);
                     measure.cleftOffset = cleftOffset;
-                    measure.keyOffsets = parseKey(keySig); 
+                    measure.keyOffsets = parseKey(keySig);
+                    staff.addMeasure(measure);
+                    measure = new Measure();
                 }
                 //Parse Rests
-                else if (Regex.IsMatch(line, "|Rest|"))
+                else if (Regex.IsMatch(line, "\\|Rest\\|"))
                 {
                     Note note = new Note();
                     note.length = parseLength(line);
-                    note.pitch = -1;
+                    note.pitch = 0;
+                    note.isRest = true;
                     Chord chord = new Chord();
                     chord.length = parseLength(line);
                     chord.addNote(note);
                     measure.addChord(chord);
                 }
                 //Parse Notes
-                else if (Regex.IsMatch(line, "|Note|"))
-                {
-                    Note note = new Note();
-                    note.pitch = parsePitches(line)[0];
-                    note.length = parseLength(line);
+                else if (Regex.IsMatch(line, "\\|Note\\|"))
+                {                    
+                    Note note = parseNotes(line)[0];
                     Chord chord = new Chord();
                     chord.length = parseLength(line);
                     chord.addNote(note);
                     measure.addChord(chord);
                 }
                 //Parse Chords
-                else if (Regex.IsMatch(line, "|Chord|"))
+                else if (Regex.IsMatch(line, "\\|Chord\\|"))
                 {
                     Chord chord = new Chord();
                     chord.length = parseLength(line);
                     chord.notes = parseNotes(line);
+                    measure.addChord(chord);
                 }
                 //Parse Rest-Chords TODO: Improve this, it currently ignores the chord!
-                else if (Regex.IsMatch(line, "|RestChord|"))
+                else if (Regex.IsMatch(line, "\\|RestChord\\|"))
                 {
                     Note note = new Note();
                     note.length = parseLength(line);
@@ -156,7 +156,7 @@ namespace Artificial_Muse
                     measure.addChord(chord);
                 }
                 // Found the end!
-                else if (Regex.IsMatch(line, "|AddStaff"))
+                else if (Regex.IsMatch(line, "\\|AddStaff"))
                 {
                     done = true;
                     prevLine = line;
@@ -170,26 +170,15 @@ namespace Artificial_Muse
             }
             return staff;
         }
-        private List<Note> parseNotes(String line)
-        {
-            Fraction length = parseLength(line);
-            List<Note> notes = new List<Note>();
 
-            foreach (double pitch in parsePitches(line))
-            {
-                Note note = new Note();
-                note.length = length;
-                note.pitch = pitch;
-                notes.Add(note);
-            }
-            return notes;
-        }
-
-        private double parsePitch(String pitch)
+        private Note parseNotePitch(String pitch)
         {
-            double note = 0;
+            Note note = new Note();
+
+            double doublePitch = 0;
             double offset = 0;
-            for (int i = 0; i < pitch.Length; i++)
+            bool done = false;
+            for (int i = 0; i < pitch.Length && !done; i++)
             {
                 switch (pitch[i])
                 {
@@ -200,28 +189,55 @@ namespace Artificial_Muse
                         offset = -.5;
                         break;
                     default:
-                        note = Convert.ToInt32(pitch.Substring(i));
+                        if (pitch[pitch.Length - 1] == '^')
+                        {
+                            note.isSlurred = true;
+                            pitch = pitch.Substring(0, pitch.Length - 1);
+                        }
+                        doublePitch = Convert.ToInt32(pitch.Substring(i));
+                        note.pitch = doublePitch;
+                        done = true;
                         break;
                 }
             }
-            return note + (offset);
+            return note;
         }
 
-        private List<double> parsePitches(String line)
+        private List<Note> parseNotes(String line)
         {
-            List<double> pitches = new List<double>();
-
-            Regex rx = new Regex("|Pos:");
+            List<Note> notes = new List<Note>();
+            Fraction length = parseLength(line);
+            Regex rx = new Regex("\\|Pos:");
             int start = rx.Matches(line)[0].Index;
-            rx = new Regex("|");
-            int end = rx.Matches(line.Substring(start))[0].Index;
+            rx = new Regex("\\|");
+            int end = 0;
 
-            rx = new Regex(",");
-            foreach(String pitch in rx.Split(line.Substring(start + 5, end - start)))
+            if (rx.IsMatch(line.Substring(start + 1)))
             {
-                pitches.Add(parsePitch(pitch));
+                end = rx.Matches(line.Substring(start + 1))[0].Index;
+
+                rx = new Regex(",");
+                foreach (String pitch in rx.Split(line.Substring(start + 5, end - 4)))
+                {
+                    Note note = parseNotePitch(pitch);
+                    note.length = length;
+
+                    notes.Add(note);
+                }
             }
-            return pitches;
+            else
+            {
+                rx = new Regex(",");
+                foreach (String pitch in rx.Split(line.Substring(start + 5)))
+                {
+                    Note note = parseNotePitch(pitch);
+                    note.length = length;
+
+                    notes.Add(note);
+                }
+            }
+
+            return notes;
         }
 
         private Fraction parseLength(String line)
@@ -229,7 +245,7 @@ namespace Artificial_Muse
             string lengthStr;
             Fraction length = new Fraction();
             length.Numerator = 1;
-            Regex rx = new Regex("|Dur:");
+            Regex rx = new Regex("\\|Dur:");
             switch (line[rx.Matches(line)[0].Index + 5])
             {
                 case 'w':
@@ -294,7 +310,7 @@ namespace Artificial_Muse
             {
                 numPos = m.Index;
             }
-             rx = new Regex("(\\/");
+             rx = new Regex("\\/");
             foreach (Match m in rx.Matches(timeSig))
             {
                 slashPos = m.Index;

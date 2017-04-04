@@ -18,11 +18,11 @@ namespace Artificial_Muse
 
         public double getHighNote()
         {
-            double pitch = 0;
+            double pitch = -5000;
             foreach (Measure measure in measures)
             {
                 if (pitch < measure.getHighNote())
-                    pitch = measure.getLowNote();
+                    pitch = measure.getHighNote();
             }
             return pitch;
         }
